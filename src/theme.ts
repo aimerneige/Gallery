@@ -143,7 +143,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
         styleOverrides: {
           root: {
             backgroundImage: 'none',
-            backgroundColor: mode === 'dark' ? 'rgba(10, 10, 10, 0.8)' : 'rgba(248, 249, 25a, 0.8)',
+            backgroundColor: mode === 'dark' ? 'rgba(10, 10, 10, 0.8)' : 'rgba(248, 249, 250, 0.8)',
             backdropFilter: 'blur(20px)',
             borderBottom: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.06)',
             color: mode === 'dark' ? '#ffffff' : '#1a1a1a',
