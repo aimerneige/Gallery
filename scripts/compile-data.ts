@@ -29,6 +29,7 @@ interface CompiledPhoto {
   id: string;
   title: string;
   description: string;
+  author?: string;
   r2Url: string;
   width: number;
   height: number;
@@ -72,6 +73,7 @@ export function initDatabaseSchema(db: Database.Database) {
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
+      author TEXT,
       r2_url TEXT NOT NULL,
       width INTEGER NOT NULL,
       height INTEGER NOT NULL,
@@ -106,6 +108,13 @@ export function initDatabaseSchema(db: Database.Database) {
       FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE
     );
   `);
+
+  // Migrate schema safely if author column missing in existing db
+  try {
+    db.exec(`ALTER TABLE photos ADD COLUMN author TEXT;`);
+  } catch {
+    // Column already exists
+  }
 }
 
 function seedFromPublicJson(db: Database.Database) {
@@ -126,12 +135,12 @@ function seedFromPublicJson(db: Database.Database) {
 
     const insertPhoto = db.prepare(`
       INSERT OR REPLACE INTO photos (
-        id, title, description, r2_url, width, height,
+        id, title, description, author, r2_url, width, height,
         camera_make, camera_model, camera_lens,
         aperture, shutter_speed, iso, focal_length, focal_length_35mm,
         date_taken, exposure_program, metering_mode,
         location_name, latitude, longitude
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertPhotoAlbum = db.prepare(`
@@ -152,6 +161,7 @@ function seedFromPublicJson(db: Database.Database) {
           p.id,
           p.title,
           p.description || '',
+          p.author || '',
           p.r2Url,
           p.width,
           p.height,
@@ -216,6 +226,7 @@ export function exportSqliteToJson(dbFile: string): CompiledDatabase {
       id: p.id,
       title: p.title,
       description: p.description || '',
+      author: p.author || undefined,
       r2Url: p.r2_url,
       width: p.width,
       height: p.height,

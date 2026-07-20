@@ -26,10 +26,11 @@ export interface Photo {
   id: string;
   title: string;
   description: string;
+  author?: string;
   r2Url: string;
   width: number;
   height: number;
-  aspectRatio?: number;
+  aspectRatio: number;
   camera: CameraInfo;
   exif: ExifInfo;
   location: LocationInfo;
@@ -42,20 +43,10 @@ export interface Album {
   name: string;
   description: string;
   coverPhotoId: string;
-  coverPhotoUrl?: string;
+  coverPhotoUrl: string;
 }
 
 export interface GalleryData {
   albums: Album[];
   photos: Photo[];
-}
-
-export interface ExtractedExifResponse {
-  suggestedId: string;
-  previewUrl: string;
-  width?: number;
-  height?: number;
-  camera: CameraInfo;
-  exif: ExifInfo;
-  location: LocationInfo;
 }

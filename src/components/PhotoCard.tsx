@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardMedia, CardContent, Typography, Box, Chip, Stack, useTheme } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonIcon from '@mui/icons-material/Person';
 import type { Photo } from '../types';
 
 interface PhotoCardProps {
@@ -124,6 +125,15 @@ export const PhotoCard: React.FC<PhotoCardProps> = ({ photo, onClick }) => {
             {formatDate(photo.exif.dateTaken)}
           </Typography>
         </Box>
+
+        {photo.author && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary', mb: 0.5 }}>
+            <PersonIcon sx={{ fontSize: 15 }} />
+            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+              {photo.author}
+            </Typography>
+          </Box>
+        )}
 
         <Typography 
           variant="body2" 

@@ -24,6 +24,7 @@ export function getDbConnection() {
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
+      author TEXT,
       r2_url TEXT NOT NULL,
       width INTEGER NOT NULL,
       height INTEGER NOT NULL,
@@ -59,6 +60,12 @@ export function getDbConnection() {
     );
   `);
 
+  try {
+    db.exec(`ALTER TABLE photos ADD COLUMN author TEXT;`);
+  } catch {
+    // Column exists
+  }
+
   return db;
 }
 
@@ -79,6 +86,7 @@ export function getAllGalleryData() {
         id: p.id,
         title: p.title,
         description: p.description || '',
+        author: p.author || undefined,
         r2Url: p.r2_url,
         width: p.width,
         height: p.height,
@@ -119,12 +127,12 @@ export function saveOrUpdatePhoto(photoData: any) {
   try {
     const insertPhoto = db.prepare(`
       INSERT OR REPLACE INTO photos (
-        id, title, description, r2_url, width, height,
+        id, title, description, author, r2_url, width, height,
         camera_make, camera_model, camera_lens,
         aperture, shutter_speed, iso, focal_length, focal_length_35mm,
         date_taken, exposure_program, metering_mode,
         location_name, latitude, longitude
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const deleteAlbums = db.prepare('DELETE FROM photo_albums WHERE photo_id = ?');
@@ -138,6 +146,7 @@ export function saveOrUpdatePhoto(photoData: any) {
         photoData.id,
         photoData.title,
         photoData.description || '',
+        photoData.author || '',
         photoData.r2Url,
         photoData.width,
         photoData.height,

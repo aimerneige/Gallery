@@ -28,6 +28,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import MapIcon from '@mui/icons-material/Map';
 import InfoIcon from '@mui/icons-material/Info';
+import PersonIcon from '@mui/icons-material/Person';
 
 import type { Photo } from '../types';
 import { useLanguage } from '../i18n';
@@ -201,6 +202,15 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                 >
                   {photo.title}
                 </Typography>
+
+                {photo.author && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', mb: 1 }}>
+                    <PersonIcon color="primary" sx={{ fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {t('byAuthor', { author: photo.author })}
+                    </Typography>
+                  </Box>
+                )}
                 
                 {/* Location Badge */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>

@@ -24,7 +24,7 @@ export const translations = {
     statLenses: 'Lenses Used',
 
     // Search & Filter
-    searchPlaceholder: 'Search titles, story, camera, location...',
+    searchPlaceholder: 'Search titles, story, photographer, camera...',
     labelCollection: 'Collection',
     labelSortBy: 'Sort By',
     allAlbums: 'All Collections',
@@ -40,6 +40,9 @@ export const translations = {
     // Details Modal
     modalOpenOriginal: 'Open Original R2 Image',
     modalShootingParams: 'Shooting Parameters',
+    modalAuthor: 'PHOTOGRAPHER',
+    byAuthor: 'Photo by {author}',
+    authorLabel: 'Photographer',
     modalCameraBody: 'CAMERA BODY',
     modalLens: 'LENS',
     modalFocalLength: 'FOCAL LENGTH',
@@ -75,7 +78,7 @@ export const translations = {
     statLenses: '所用镜头',
 
     // Search & Filter
-    searchPlaceholder: '搜索标题、故事、相机型号、拍摄地点...',
+    searchPlaceholder: '搜索标题、故事、摄影师、相机型号...',
     labelCollection: '专题相册',
     labelSortBy: '排序方式',
     allAlbums: '全部相册',
@@ -91,6 +94,9 @@ export const translations = {
     // Details Modal
     modalOpenOriginal: '查看原始图片',
     modalShootingParams: '拍摄参数',
+    modalAuthor: '摄影师 / 作者',
+    byAuthor: '摄影师：{author}',
+    authorLabel: '摄影师',
     modalCameraBody: '相机机身',
     modalLens: '镜头型号',
     modalFocalLength: '焦距',

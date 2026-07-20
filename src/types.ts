@@ -26,6 +26,7 @@ export interface Photo {
   id: string;
   title: string;
   description: string;
+  author?: string;
   r2Url: string;
   width: number;
   height: number;
