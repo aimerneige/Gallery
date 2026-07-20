@@ -16,10 +16,12 @@
     "@mui/icons-material": "^9.2.0",
     "@mui/lab": "^9.0.0-beta.6",
     "@mui/material": "^9.2.0",
+    "better-sqlite3": "^12.11.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

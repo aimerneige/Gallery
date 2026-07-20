@@ -8,6 +8,13 @@ import { exec } from 'child_process';
 import { parseExif } from './exif.js';
 import { processImage } from './image.js';
 import { uploadToR2, getR2ConfigFromEnv } from './storage.js';
+import {
+  getAllGalleryData,
+  saveOrUpdatePhoto,
+  deletePhoto,
+  saveOrUpdateAlbum,
+  deleteAlbum,
+} from './db.js';
 
 dotenv.config();
 
@@ -15,9 +22,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const ROOT_DIR = path.resolve(process.cwd(), '../../');
-const DATA_DIR = path.join(ROOT_DIR, 'data');
-const GALLERY_JSON_PATH = path.join(DATA_DIR, 'gallery.json');
-const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const ENV_FILE_PATH = path.join(process.cwd(), '.env');
 
 app.use(cors());
@@ -39,28 +43,13 @@ function triggerCompilation() {
   });
 }
 
-// Helper to read gallery database
-function readGalleryData() {
-  if (!fs.existsSync(GALLERY_JSON_PATH)) {
-    return { albums: [], photos: [] };
-  }
-  const raw = fs.readFileSync(GALLERY_JSON_PATH, 'utf8');
-  return JSON.parse(raw);
-}
-
-// Helper to write gallery database
-function writeGalleryData(data: any) {
-  fs.writeFileSync(GALLERY_JSON_PATH, JSON.stringify(data, null, 2), 'utf8');
-  triggerCompilation();
-}
-
-// 1. GET /api/data - Get current gallery database
+// 1. GET /api/data - Get current gallery database from SQLite
 app.get('/api/data', (_req, res) => {
   try {
-    const data = readGalleryData();
+    const data = getAllGalleryData();
     res.json(data);
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to read gallery data', details: err.message });
+    res.status(500).json({ error: 'Failed to read gallery database', details: err.message });
   }
 });
 
@@ -105,7 +94,7 @@ app.post('/api/extract-exif', upload.single('photo'), async (req, res) => {
   }
 });
 
-// 3. POST /api/upload - Process, Upload, and Save Photo metadata
+// 3. POST /api/upload - Process, Upload to R2, and Save Photo to SQLite DB
 app.post('/api/upload', upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) {
@@ -133,15 +122,10 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
     // Process image to WebP
     const processed = await processImage(req.file.buffer, { maxDimension: Number(maxDimension), quality: Number(quality) });
 
-    // Upload to Cloudflare R2 or Local fallback
+    // Upload strictly to Cloudflare R2
     const config = getR2ConfigFromEnv();
     const filename = `${id}.webp`;
-    const r2Url = await uploadToR2(processed.buffer, filename, config, PUBLIC_DIR);
-
-    const db = readGalleryData();
-
-    // Check if photo ID already exists
-    const existingIndex = db.photos.findIndex((p: any) => p.id === id);
+    const r2Url = await uploadToR2(processed.buffer, filename, config);
 
     const newPhoto = {
       id,
@@ -174,13 +158,8 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
       tags: Array.isArray(tags) ? tags : [],
     };
 
-    if (existingIndex >= 0) {
-      db.photos[existingIndex] = newPhoto;
-    } else {
-      db.photos.unshift(newPhoto);
-    }
-
-    writeGalleryData(db);
+    saveOrUpdatePhoto(newPhoto);
+    triggerCompilation();
 
     res.json({ success: true, photo: newPhoto });
   } catch (err: any) {
@@ -189,56 +168,34 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
   }
 });
 
-// 4. PUT /api/photos/:id - Update existing photo metadata
+// 4. PUT /api/photos/:id - Update existing photo in SQLite DB
 app.put('/api/photos/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const db = readGalleryData();
+    const photoData = { ...req.body, id };
 
-    const photoIndex = db.photos.findIndex((p: any) => p.id === id);
-    if (photoIndex === -1) {
-      return res.status(404).json({ error: 'Photo not found' });
-    }
+    saveOrUpdatePhoto(photoData);
+    triggerCompilation();
 
-    const existing = db.photos[photoIndex];
-    const updated = {
-      ...existing,
-      ...req.body,
-      id: existing.id, // ID cannot be changed
-    };
-
-    db.photos[photoIndex] = updated;
-    writeGalleryData(db);
-
-    res.json({ success: true, photo: updated });
+    res.json({ success: true, photo: photoData });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update photo', details: err.message });
   }
 });
 
-// 5. DELETE /api/photos/:id - Delete photo
+// 5. DELETE /api/photos/:id - Delete photo from SQLite DB
 app.delete('/api/photos/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const db = readGalleryData();
-
-    db.photos = db.photos.filter((p: any) => p.id !== id);
-    // Remove photo from album covers if applicable
-    db.albums.forEach((a: any) => {
-      if (a.coverPhotoId === id) {
-        const nextCover = db.photos.find((p: any) => p.albums?.includes(a.id));
-        a.coverPhotoId = nextCover ? nextCover.id : '';
-      }
-    });
-
-    writeGalleryData(db);
+    deletePhoto(id);
+    triggerCompilation();
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete photo', details: err.message });
   }
 });
 
-// 6. POST /api/albums - Create album
+// 6. POST /api/albums - Create album in SQLite DB
 app.post('/api/albums', (req, res) => {
   try {
     const { id, name, description, coverPhotoId } = req.body;
@@ -246,67 +203,36 @@ app.post('/api/albums', (req, res) => {
       return res.status(400).json({ error: 'Album ID and Name are required' });
     }
 
-    const db = readGalleryData();
-    if (db.albums.some((a: any) => a.id === id)) {
-      return res.status(400).json({ error: 'Album ID already exists' });
-    }
+    saveOrUpdateAlbum({ id, name, description, coverPhotoId });
+    triggerCompilation();
 
-    const newAlbum = {
-      id,
-      name,
-      description: description || '',
-      coverPhotoId: coverPhotoId || '',
-    };
-
-    db.albums.push(newAlbum);
-    writeGalleryData(db);
-
-    res.json({ success: true, album: newAlbum });
+    res.json({ success: true, album: { id, name, description, coverPhotoId } });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to create album', details: err.message });
   }
 });
 
-// 7. PUT /api/albums/:id - Update album
+// 7. PUT /api/albums/:id - Update album in SQLite DB
 app.put('/api/albums/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const db = readGalleryData();
+    const albumData = { ...req.body, id };
 
-    const albumIndex = db.albums.findIndex((a: any) => a.id === id);
-    if (albumIndex === -1) {
-      return res.status(404).json({ error: 'Album not found' });
-    }
+    saveOrUpdateAlbum(albumData);
+    triggerCompilation();
 
-    const existing = db.albums[albumIndex];
-    db.albums[albumIndex] = {
-      ...existing,
-      ...req.body,
-      id: existing.id,
-    };
-
-    writeGalleryData(db);
-    res.json({ success: true, album: db.albums[albumIndex] });
+    res.json({ success: true, album: albumData });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update album', details: err.message });
   }
 });
 
-// 8. DELETE /api/albums/:id - Delete album
+// 8. DELETE /api/albums/:id - Delete album from SQLite DB
 app.delete('/api/albums/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const db = readGalleryData();
-
-    db.albums = db.albums.filter((a: any) => a.id !== id);
-    // Remove album reference from photos
-    db.photos.forEach((p: any) => {
-      if (Array.isArray(p.albums)) {
-        p.albums = p.albums.filter((albumId: string) => albumId !== id);
-      }
-    });
-
-    writeGalleryData(db);
+    deleteAlbum(id);
+    triggerCompilation();
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete album', details: err.message });

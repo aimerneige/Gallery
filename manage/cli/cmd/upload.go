@@ -110,7 +110,7 @@ var uploadCmd = &cobra.Command{
 		}
 		fmt.Printf("✔ WebP compressed successfully: %d x %d px (%d KB)\n", procResult.Width, procResult.Height, len(procResult.Buffer)/1024)
 
-		// 3. Upload to Cloudflare R2 / Fallback
+		// 3. Upload strictly to Cloudflare R2
 		r2Cfg := storage.Config{
 			AccountID:       getEnvOrFlag(r2AccountIDFlag, "R2_ACCOUNT_ID"),
 			AccessKeyID:     getEnvOrFlag(r2AccessKeyIDFlag, "R2_ACCESS_KEY_ID"),
@@ -124,26 +124,20 @@ var uploadCmd = &cobra.Command{
 
 		targetDbPath := dbPath
 		if targetDbPath == "" {
-			targetDbPath = database.GetDefaultDataPath()
+			targetDbPath = database.GetDefaultDbPath()
 		}
-		rootDir := filepath.Dir(filepath.Dir(targetDbPath))
 
-		fmt.Println("==> Uploading image asset...")
-		r2Url, err := storage.UploadToR2(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID), r2Cfg, rootDir)
+		fmt.Println("==> Uploading image asset to Cloudflare R2...")
+		r2Url, err := storage.UploadToR2(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID), r2Cfg)
 		if err != nil {
 			return fmt.Errorf("storage upload error: %w", err)
 		}
-		fmt.Printf("✔ Image R2/URL: %s\n", r2Url)
+		fmt.Printf("✔ Image R2 URL: %s\n", r2Url)
 
 		// 4. Update Database
 		if dryRunFlag {
 			fmt.Println("⚡ [--dry-run active] Database update skipped.")
 			return nil
-		}
-
-		gallery, err := database.LoadGalleryData(targetDbPath)
-		if err != nil {
-			return fmt.Errorf("failed to load database: %w", err)
 		}
 
 		newPhoto := database.Photo{
@@ -175,24 +169,11 @@ var uploadCmd = &cobra.Command{
 			Tags:   tagsFlag,
 		}
 
-		// Insert or replace
-		replaced := false
-		for i, p := range gallery.Photos {
-			if p.ID == photoID {
-				gallery.Photos[i] = newPhoto
-				replaced = true
-				break
-			}
-		}
-		if !replaced {
-			gallery.Photos = append([]database.Photo{newPhoto}, gallery.Photos...)
+		if err := database.SavePhotoToSqlite(targetDbPath, newPhoto); err != nil {
+			return fmt.Errorf("failed to save photo to SQLite database: %w", err)
 		}
 
-		if err := database.SaveGalleryData(targetDbPath, gallery); err != nil {
-			return fmt.Errorf("failed to save gallery database: %w", err)
-		}
-
-		fmt.Printf("🎉 Successfully published photo '%s' [%s] to NicoGallery database!\n", photoTitle, photoID)
+		fmt.Printf("🎉 Successfully published photo '%s' [%s] to NicoGallery SQLite database!\n", photoTitle, photoID)
 		return nil
 	},
 }
@@ -229,5 +210,5 @@ func init() {
 	uploadCmd.Flags().StringVar(&r2SecretKeyFlag, "r2-secret-access-key", "", "Cloudflare R2 Secret Access Key")
 	uploadCmd.Flags().StringVar(&r2BucketFlag, "r2-bucket", "", "Cloudflare R2 Bucket Name")
 	uploadCmd.Flags().StringVar(&r2PublicURLFlag, "r2-public-url", "", "Cloudflare R2 Public Domain Prefix")
-	uploadCmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "Validate & process without updating gallery.json")
+	uploadCmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "Validate & process without updating gallery database")
 }

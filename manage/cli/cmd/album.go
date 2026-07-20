@@ -22,24 +22,13 @@ var albumCmd = &cobra.Command{
 
 var albumCreateCmd = &cobra.Command{
 	Use:   "create <album-id>",
-	Short: "Create a new album in the database",
+	Short: "Create a new album in the SQLite database",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		albumID := strings.ToLower(args[0])
 		targetDbPath := dbPath
 		if targetDbPath == "" {
-			targetDbPath = database.GetDefaultDataPath()
-		}
-
-		gallery, err := database.LoadGalleryData(targetDbPath)
-		if err != nil {
-			return err
-		}
-
-		for _, a := range gallery.Albums {
-			if a.ID == albumID {
-				return fmt.Errorf("album ID '%s' already exists", albumID)
-			}
+			targetDbPath = database.GetDefaultDbPath()
 		}
 
 		name := albumNameFlag
@@ -54,12 +43,11 @@ var albumCreateCmd = &cobra.Command{
 			CoverPhotoID: albumCoverPhotoFlag,
 		}
 
-		gallery.Albums = append(gallery.Albums, newAlbum)
-		if err := database.SaveGalleryData(targetDbPath, gallery); err != nil {
+		if err := database.SaveAlbumToSqlite(targetDbPath, newAlbum); err != nil {
 			return err
 		}
 
-		fmt.Printf("✔ Created album '%s' [%s]\n", name, albumID)
+		fmt.Printf("✔ Created album '%s' [%s] in SQLite database\n", name, albumID)
 		return nil
 	},
 }

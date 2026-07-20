@@ -1,6 +1,4 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import path from 'path';
-import fs from 'fs';
 
 export interface R2Config {
   accountId?: string;
@@ -23,53 +21,44 @@ export function getR2ConfigFromEnv(): R2Config {
 export async function uploadToR2(
   buffer: Buffer,
   filename: string,
-  config: R2Config,
-  publicDir: string
+  config: R2Config
 ): Promise<string> {
   const { accountId, accessKeyId, secretAccessKey, bucketName, publicUrlPrefix } = config;
 
-  if (accountId && accessKeyId && secretAccessKey && bucketName) {
-    try {
-      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-      const s3 = new S3Client({
-        region: 'auto',
-        endpoint,
-        credentials: {
-          accessKeyId,
-          secretAccessKey,
-        },
-      });
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+    throw new Error(
+      'Cloudflare R2 credentials (ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME) are missing. Please configure them in Settings before uploading.'
+    );
+  }
 
-      const key = `photos/${filename}`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: key,
-          Body: buffer,
-          ContentType: 'image/webp',
-        })
-      );
+  try {
+    const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+    const s3 = new S3Client({
+      region: 'auto',
+      endpoint,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
 
-      if (publicUrlPrefix) {
-        const cleanPrefix = publicUrlPrefix.endsWith('/') ? publicUrlPrefix.slice(0, -1) : publicUrlPrefix;
-        return `${cleanPrefix}/${key}`;
-      }
+    const key = `photos/${filename}`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/webp',
+      })
+    );
 
-      return `${endpoint}/${bucketName}/${key}`;
-    } catch (err) {
-      console.error('R2 upload failed, saving to local fallback:', err);
+    if (publicUrlPrefix) {
+      const cleanPrefix = publicUrlPrefix.endsWith('/') ? publicUrlPrefix.slice(0, -1) : publicUrlPrefix;
+      return `${cleanPrefix}/${key}`;
     }
+
+    return `${endpoint}/${bucketName}/${key}`;
+  } catch (err: any) {
+    throw new Error(`Cloudflare R2 upload failed: ${err.message}`);
   }
-
-  // Fallback mode: save to local public/uploads directory
-  const uploadsDir = path.join(publicDir, 'uploads');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-
-  const localFilePath = path.join(uploadsDir, filename);
-  fs.writeFileSync(localFilePath, buffer);
-  console.log(`Saved image to local fallback: ${localFilePath}`);
-
-  return `./uploads/${filename}`;
 }

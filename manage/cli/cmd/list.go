@@ -10,19 +10,19 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List photos and albums stored in the database",
+	Short: "List photos and albums stored in SQLite database",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		targetDbPath := dbPath
 		if targetDbPath == "" {
-			targetDbPath = database.GetDefaultDataPath()
+			targetDbPath = database.GetDefaultDbPath()
 		}
 
-		gallery, err := database.LoadGalleryData(targetDbPath)
+		gallery, err := database.LoadGalleryDataFromSqlite(targetDbPath)
 		if err != nil {
-			return fmt.Errorf("failed to load database from %s: %w", targetDbPath, err)
+			return fmt.Errorf("failed to load SQLite database from %s: %w", targetDbPath, err)
 		}
 
-		fmt.Printf("=== NicoGallery Database (%s) ===\n\n", targetDbPath)
+		fmt.Printf("=== NicoGallery SQLite Database (%s) ===\n\n", targetDbPath)
 		fmt.Printf("Albums (%d):\n", len(gallery.Albums))
 		for _, a := range gallery.Albums {
 			fmt.Printf("  • [%s] %s - %s\n", a.ID, a.Name, a.Description)
