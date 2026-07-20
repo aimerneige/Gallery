@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <PhotoCamera sx={{ fontSize: 22 }} />
           </Box>
           <Typography variant="h6" component="div" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
-            NicoGallery <Typography component="span" variant="caption" sx={{ opacity: 0.6, ml: 0.5, fontWeight: 600 }}>MANAGE</Typography>
+            Gallery <Typography component="span" variant="caption" sx={{ opacity: 0.6, ml: 0.5, fontWeight: 600 }}>MANAGE</Typography>
           </Typography>
 
           <Chip

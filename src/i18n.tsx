@@ -5,7 +5,7 @@ export type Language = 'en' | 'zh';
 export const translations = {
   en: {
     // Header
-    navTitle: 'NICOGALLERY',
+    navTitle: 'GALLERY',
     tooltipThemeDark: 'Switch to Dark Mode',
     tooltipThemeLight: 'Switch to Light Mode',
     tooltipGithub: 'View Source on GitHub',
@@ -59,7 +59,7 @@ export const translations = {
   },
   zh: {
     // Header
-    navTitle: 'NICO 画廊',
+    navTitle: '画廊',
     tooltipThemeDark: '切换至深色模式',
     tooltipThemeLight: '切换至浅色模式',
     tooltipGithub: '在 GitHub 查看源码',
@@ -126,13 +126,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('nicogallery_lang');
+    const saved = localStorage.getItem('gallery_lang');
     if (saved === 'zh' || saved === 'en') return saved;
     return navigator.language.startsWith('zh') ? 'zh' : 'en';
   });
 
   useEffect(() => {
-    localStorage.setItem('nicogallery_lang', language);
+    localStorage.setItem('gallery_lang', language);
   }, [language]);
 
   const setLanguage = (lang: Language) => {

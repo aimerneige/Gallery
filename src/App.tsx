@@ -286,7 +286,7 @@ function MainApp() {
         >
           <Container maxWidth="xl">
             <Typography variant="body2" color="text.secondary" align="center">
-              &copy; {new Date().getFullYear()} NicoGallery. All rights reserved.
+              &copy; {new Date().getFullYear()} Gallery. All rights reserved.
             </Typography>
             <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', mt: 1 }}>
               Built with React, Vite & Material UI. Images delivered via Cloudflare R2.

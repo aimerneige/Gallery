@@ -1,4 +1,4 @@
-# NicoGallery 📷
+# Gallery 📷
 
 🚀 **Fully Built by Gemini**
 
