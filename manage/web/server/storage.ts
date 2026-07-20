@@ -1,0 +1,75 @@
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import path from 'path';
+import fs from 'fs';
+
+export interface R2Config {
+  accountId?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  bucketName?: string;
+  publicUrlPrefix?: string;
+}
+
+export function getR2ConfigFromEnv(): R2Config {
+  return {
+    accountId: process.env.R2_ACCOUNT_ID || '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    bucketName: process.env.R2_BUCKET_NAME || 'nicogallery',
+    publicUrlPrefix: process.env.R2_PUBLIC_URL_PREFIX || '',
+  };
+}
+
+export async function uploadToR2(
+  buffer: Buffer,
+  filename: string,
+  config: R2Config,
+  publicDir: string
+): Promise<string> {
+  const { accountId, accessKeyId, secretAccessKey, bucketName, publicUrlPrefix } = config;
+
+  if (accountId && accessKeyId && secretAccessKey && bucketName) {
+    try {
+      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+
+      const key = `photos/${filename}`;
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: key,
+          Body: buffer,
+          ContentType: 'image/webp',
+        })
+      );
+
+      if (publicUrlPrefix) {
+        const cleanPrefix = publicUrlPrefix.endsWith('/') ? publicUrlPrefix.slice(0, -1) : publicUrlPrefix;
+        return `${cleanPrefix}/${key}`;
+      }
+
+      return `${endpoint}/${bucketName}/${key}`;
+    } catch (err) {
+      console.error('R2 upload failed, saving to local fallback:', err);
+    }
+  }
+
+  // Fallback mode: save to local public/uploads directory
+  const uploadsDir = path.join(publicDir, 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const localFilePath = path.join(uploadsDir, filename);
+  fs.writeFileSync(localFilePath, buffer);
+  console.log(`Saved image to local fallback: ${localFilePath}`);
+
+  return `./uploads/${filename}`;
+}
