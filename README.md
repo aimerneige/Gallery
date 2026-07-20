@@ -73,6 +73,7 @@ NicoGallery/
 │   ├── types.ts               # Shared TypeScript interfaces
 │   ├── App.tsx
 │   └── main.tsx
+├── deploy.sh                  # GitHub Pages deployment automation script
 ├── GEMINI.md                  # Project rules and architectural guidelines
 └── README.md                  # Project documentation
 ```
@@ -128,6 +129,17 @@ go build -o nicogallery-cli .
 
 # List photos & albums stored in SQLite database
 ./nicogallery-cli list
+```
+
+---
+
+## 🌐 Deployment
+
+Deploy the compiled static bundle to the target deployment repository (`git@github.com:aimerneige/gallery.aimer.moe.git`):
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
 ```
 
 ---
