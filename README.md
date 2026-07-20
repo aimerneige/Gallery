@@ -1,6 +1,17 @@
 # NicoGallery 📷
 
+🚀 **Fully Built by Gemini**
+
 A modern, fast, and elegant personal photo gallery web application designed for static deployment on **GitHub Pages**, paired with a dedicated local management tool ecosystem (**Web Dashboard** & **Go CLI**).
+
+[![React](https://img.shields.io/badge/React-19.2-blue?logo=react&logoColor=white)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![MUI](https://img.shields.io/badge/MUI-9.2-007FFF?logo=mui&logoColor=white)](https://mui.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org)
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](https://go.dev)
+[![Cloudflare R2](https://img.shields.io/badge/Cloudflare_R2-Storage-F38020?logo=cloudflare&logoColor=white)](https://www.cloudflare.com/developer-platform/r2/)
+[![Built by Gemini](https://img.shields.io/badge/Built_by-Gemini-orange?logo=googlegemini&logoColor=white)](#)
 
 ---
 
