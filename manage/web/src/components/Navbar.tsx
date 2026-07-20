@@ -18,7 +18,9 @@ import {
   PhotoCamera,
   CheckCircle,
   Error as ErrorIcon,
+  Translate,
 } from '@mui/icons-material';
+import { useLanguage } from '../i18n';
 
 interface NavbarProps {
   mode: 'light' | 'dark';
@@ -37,6 +39,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   serverOnline,
 }) => {
+  const { toggleLanguage, t } = useLanguage();
+
   return (
     <AppBar position="sticky" elevation={0}>
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 4 } }}>
@@ -62,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Chip
             size="small"
             icon={serverOnline ? <CheckCircle style={{ fontSize: 14 }} /> : <ErrorIcon style={{ fontSize: 14 }} />}
-            label={serverOnline ? 'API Connected' : 'API Offline'}
+            label={serverOnline ? t('apiConnected') : t('apiOffline')}
             color={serverOnline ? 'success' : 'error'}
             variant="outlined"
             sx={{ ml: 1, height: 24, fontSize: '0.72rem' }}
@@ -75,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             startIcon={<CloudUpload />}
             onClick={() => onTabChange('upload')}
           >
-            Upload Photo
+            {t('navUpload')}
           </Button>
 
           <Button
@@ -83,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             startIcon={<Collections />}
             onClick={() => onTabChange('photos')}
           >
-            Manage Photos
+            {t('navPhotos')}
           </Button>
 
           <Button
@@ -91,10 +95,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             startIcon={<Collections />}
             onClick={() => onTabChange('albums')}
           >
-            Albums
+            {t('navAlbums')}
           </Button>
 
-          <Tooltip title="R2 Storage Settings">
+          <Tooltip title="Switch Language / 切换语言">
+            <Button
+              onClick={toggleLanguage}
+              color="inherit"
+              size="small"
+              startIcon={<Translate sx={{ fontSize: 18 }} />}
+              sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 99, px: 1.8, fontWeight: 600, fontSize: '0.85rem' }}
+            >
+              {t('langToggle')}
+            </Button>
+          </Tooltip>
+
+          <Tooltip title={t('navSettings')}>
             <IconButton onClick={onOpenSettings} color="inherit">
               <Settings />
             </IconButton>

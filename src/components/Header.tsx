@@ -1,9 +1,11 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Container, Box, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Container, Box, Tooltip, Button } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import TranslateIcon from '@mui/icons-material/Translate';
+import { useLanguage } from '../i18n';
 
 interface HeaderProps {
   mode: 'light' | 'dark';
@@ -11,6 +13,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ mode, onToggleTheme }) => {
+  const { toggleLanguage, t } = useLanguage();
+
   return (
     <AppBar position="sticky" elevation={0}>
       <Container maxWidth="xl">
@@ -43,22 +47,41 @@ export const Header: React.FC<HeaderProps> = ({ mode, onToggleTheme }) => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              NICOGALLERY
+              {t('navTitle')}
             </Typography>
           </Box>
 
           {/* Action Buttons */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Tooltip title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+            <Tooltip title="Switch Language / 切换语言">
+              <Button
+                onClick={toggleLanguage}
+                color="inherit"
+                size="small"
+                startIcon={<TranslateIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 99,
+                  px: 1.8,
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                }}
+              >
+                {t('langToggle')}
+              </Button>
+            </Tooltip>
+
+            <Tooltip title={mode === 'dark' ? t('tooltipThemeLight') : t('tooltipThemeDark')}>
               <IconButton onClick={onToggleTheme} color="inherit" sx={{ border: '1px solid', borderColor: 'divider' }}>
                 {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </Tooltip>
             
-            <Tooltip title="View Source on GitHub">
+            <Tooltip title={t('tooltipGithub')}>
               <IconButton 
                 component="a" 
-                href="https://github.com" 
+                href="https://github.com/aimerneige/NicoGallery" 
                 target="_blank" 
                 color="inherit" 
                 sx={{ border: '1px solid', borderColor: 'divider' }}

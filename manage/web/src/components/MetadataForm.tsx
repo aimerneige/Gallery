@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, CameraAlt, Explore, Description, Style } from '@mui/icons-material';
 import { Album } from '../types';
+import { useLanguage } from '../i18n';
 
 export interface MetadataFormState {
   id: string;
@@ -55,6 +56,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
   const [tagInput, setTagInput] = useState('');
   const [newAlbumName, setNewAlbumName] = useState('');
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
+  const { t } = useLanguage();
 
   const handleFieldChange = (field: keyof MetadataFormState, value: any) => {
     onChange({ ...formState, [field]: value });
@@ -88,24 +90,24 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
       {/* Basic Info */}
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Description fontSize="small" color="primary" /> Photo Identification & Story
+          <Description fontSize="small" color="primary" /> {t('secStory')}
         </Typography>
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
-              label="Photo Slug / ID"
+              label={t('slugLabel')}
               fullWidth
               size="small"
               value={formState.id}
               onChange={(e) => handleFieldChange('id', e.target.value)}
-              helperText="Unique identifier used in URL and database"
+              helperText={t('slugHelper')}
               required
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 8 }}>
             <TextField
-              label="Title"
+              label={t('titleLabel')}
               fullWidth
               size="small"
               value={formState.title}
@@ -116,14 +118,13 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 12 }}>
             <TextField
-              label="Description / Story"
+              label={t('descLabel')}
               fullWidth
               multiline
               rows={3}
               size="small"
               value={formState.description}
               onChange={(e) => handleFieldChange('description', e.target.value)}
-              placeholder="Describe the context, story, lighting, or technical execution..."
             />
           </Grid>
         </Grid>
@@ -132,13 +133,13 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
       {/* Camera & EXIF Specs */}
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CameraAlt fontSize="small" color="primary" /> Camera Hardware & EXIF Parameters
+          <CameraAlt fontSize="small" color="primary" /> {t('secCamera')}
         </Typography>
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
-              label="Camera Make"
+              label={t('makeLabel')}
               fullWidth
               size="small"
               value={formState.cameraMake}
@@ -148,7 +149,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
-              label="Camera Model"
+              label={t('modelLabel')}
               fullWidth
               size="small"
               value={formState.cameraModel}
@@ -158,7 +159,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
-              label="Lens Model"
+              label={t('lensLabel')}
               fullWidth
               size="small"
               value={formState.cameraLens}
@@ -169,7 +170,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
 
           <Grid size={{ xs: 6, sm: 2.4 }}>
             <TextField
-              label="Aperture"
+              label={t('apertureLabel')}
               fullWidth
               size="small"
               value={formState.aperture}
@@ -179,7 +180,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 6, sm: 2.4 }}>
             <TextField
-              label="Shutter Speed"
+              label={t('shutterLabel')}
               fullWidth
               size="small"
               value={formState.shutterSpeed}
@@ -189,7 +190,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 6, sm: 2.4 }}>
             <TextField
-              label="ISO"
+              label={t('isoLabel')}
               fullWidth
               type="number"
               size="small"
@@ -200,7 +201,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 6, sm: 2.4 }}>
             <TextField
-              label="Focal Length (mm)"
+              label={t('focalLabel')}
               fullWidth
               type="number"
               size="small"
@@ -211,7 +212,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 12, sm: 2.4 }}>
             <TextField
-              label="Date Taken"
+              label={t('dateLabel')}
               fullWidth
               size="small"
               value={formState.dateTaken}
@@ -224,13 +225,13 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
       {/* Location */}
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Explore fontSize="small" color="primary" /> Location Metadata
+          <Explore fontSize="small" color="primary" /> {t('secLocation')}
         </Typography>
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
-              label="Location Name"
+              label={t('locationNameLabel')}
               fullWidth
               size="small"
               value={formState.locationName}
@@ -240,7 +241,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <TextField
-              label="Latitude"
+              label={t('latLabel')}
               fullWidth
               type="number"
               size="small"
@@ -251,7 +252,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <TextField
-              label="Longitude"
+              label={t('lngLabel')}
               fullWidth
               type="number"
               size="small"
@@ -266,19 +267,19 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
       {/* Albums & Tags */}
       <Paper sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Style fontSize="small" color="primary" /> Albums & Tags Categorization
+          <Style fontSize="small" color="primary" /> {t('secCategorization')}
         </Typography>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth size="small">
-              <InputLabel id="albums-select-label">Assign to Albums</InputLabel>
+              <InputLabel id="albums-select-label">{t('assignAlbums')}</InputLabel>
               <Select
                 labelId="albums-select-label"
                 multiple
                 value={formState.selectedAlbums}
                 onChange={(e) => handleFieldChange('selectedAlbums', e.target.value)}
-                input={<OutlinedInput label="Assign to Albums" />}
+                input={<OutlinedInput label={t('assignAlbums')} />}
                 renderValue={(selected) => (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {(selected as string[]).map((value) => {
@@ -303,7 +304,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
                 onClick={() => setIsCreatingAlbum(true)}
                 sx={{ mt: 1 }}
               >
-                Create New Album
+                {t('createAlbum')}
               </Button>
             ) : (
               <Box sx={{ mt: 1.5, display: 'flex', gap: 1 }}>
@@ -317,7 +318,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
                   Add
                 </Button>
                 <Button size="small" onClick={() => setIsCreatingAlbum(false)}>
-                  Cancel
+                  {t('btnCancel')}
                 </Button>
               </Box>
             )}
@@ -326,7 +327,7 @@ export const MetadataForm: React.FC<MetadataFormProps> = ({
           <Grid size={{ xs: 12, sm: 6 }}>
             <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
               <TextField
-                label="Add Tags"
+                label={t('addTags')}
                 size="small"
                 fullWidth
                 value={tagInput}

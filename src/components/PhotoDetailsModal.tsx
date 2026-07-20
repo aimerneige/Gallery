@@ -30,6 +30,7 @@ import MapIcon from '@mui/icons-material/Map';
 import InfoIcon from '@mui/icons-material/Info';
 
 import type { Photo } from '../types';
+import { useLanguage } from '../i18n';
 
 interface PhotoDetailsModalProps {
   photo: Photo | null;
@@ -47,6 +48,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
+  const { language, t } = useLanguage();
 
   if (!photo) return null;
 
@@ -54,14 +56,13 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
   const formatFullDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        timeZoneName: 'short'
       });
     } catch {
       return dateStr;
@@ -144,7 +145,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
             />
             
             {/* View raw image button */}
-            <Tooltip title="Open Original R2 Image">
+            <Tooltip title={t('modalOpenOriginal')}>
               <IconButton
                 component="a"
                 href={photo.r2Url}
@@ -229,7 +230,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     gap: 1 
                   }}
                 >
-                  <InfoIcon fontSize="small" /> Shooting parameters
+                  <InfoIcon fontSize="small" /> {t('modalShootingParams')}
                 </Typography>
                 
                 <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -238,7 +239,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
                       <CameraAltIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>CAMERA BODY</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalCameraBody')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{photo.camera.make} {photo.camera.model}</Typography>
                       </Box>
                     </Paper>
@@ -249,7 +250,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
                       <FilterTiltShiftIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>LENS</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalLens')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{photo.camera.lens}</Typography>
                       </Box>
                     </Paper>
@@ -260,7 +261,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <CenterFocusStrongIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>FOCAL LENGTH</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalFocalLength')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
                           {photo.exif.focalLength}mm
                           {photo.exif.focalLength35mm && photo.exif.focalLength35mm !== photo.exif.focalLength && (
@@ -277,7 +278,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Typography sx={{ fontSize: 20, fontWeight: 700, color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, fontFamily: '"Outfit", sans-serif' }}>ƒ</Typography>
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>APERTURE</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalAperture')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{photo.exif.aperture}</Typography>
                       </Box>
                     </Paper>
@@ -287,7 +288,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <SpeedIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>SHUTTER SPEED</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalShutterSpeed')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{photo.exif.shutterSpeed}</Typography>
                       </Box>
                     </Paper>
@@ -297,7 +298,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <GrainIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>ISO</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalIso')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{photo.exif.iso}</Typography>
                       </Box>
                     </Paper>
@@ -309,7 +310,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                       <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <SettingsIcon color="action" sx={{ fontSize: 20 }} />
                         <Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>EXPOSURE MODE</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalExposureMode')}</Typography>
                           <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{photo.exif.exposureProgram}</Typography>
                         </Box>
                       </Paper>
@@ -320,8 +321,8 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <FlashOnIcon color="action" sx={{ fontSize: 20 }} />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>FLASH</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{photo.exif.flash || 'Did not fire'}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalFlash')}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{photo.exif.flash || t('modalFlashOff')}</Typography>
                       </Box>
                     </Paper>
                   </Grid>
@@ -331,7 +332,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                     <Paper variant="outlined" sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
                       <CalendarTodayIcon color="action" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>CAPTURE DATE</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{t('modalCaptureDate')}</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatFullDate(photo.exif.dateTaken)}</Typography>
                       </Box>
                     </Paper>
@@ -345,7 +346,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
               <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 <Box>
                   <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 600 }}>
-                    Tags
+                    {t('modalTags')}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ gap: 1, flexWrap: 'wrap' }}>
                     {photo.tags.map((tag) => (
@@ -382,7 +383,7 @@ export const PhotoDetailsModal: React.FC<PhotoDetailsModalProps> = ({
                       py: 1.2,
                     }}
                   >
-                    View Map Location
+                    {t('modalViewMap')}
                   </Button>
                 </Box>
               </Box>

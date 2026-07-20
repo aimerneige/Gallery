@@ -17,12 +17,12 @@ import { HeroSection } from './components/HeroSection';
 import { SearchAndFilter } from './components/SearchAndFilter';
 import { PhotoCard } from './components/PhotoCard';
 import { PhotoDetailsModal } from './components/PhotoDetailsModal';
+import { LanguageProvider } from './i18n';
 import type { GalleryData, Photo } from './types';
 
-function App() {
+function MainApp() {
   // Theme state
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
-    // Check if system preference or storage
     const savedMode = localStorage.getItem('theme-mode');
     if (savedMode === 'light' || savedMode === 'dark') return savedMode;
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -55,7 +55,6 @@ function App() {
   // Fetch Gallery Data at startup
   useEffect(() => {
     setLoading(true);
-    // Use relative path './data.json' to support GitHub Pages subfolders seamlessly
     fetch('./data.json')
       .then((res) => {
         if (!res.ok) {
@@ -110,7 +109,6 @@ function App() {
       });
     });
 
-    // Sort tags by frequency (highest first)
     return Object.keys(tagsMap).sort((a, b) => tagsMap[b] - tagsMap[a]);
   }, [galleryData]);
 
@@ -120,17 +118,14 @@ function App() {
 
     let result = [...galleryData.photos];
 
-    // 1. Filter by Album/Collection
     if (selectedAlbum !== 'all') {
       result = result.filter((p) => p.albums.includes(selectedAlbum));
     }
 
-    // 2. Filter by Tag
     if (selectedTag) {
       result = result.filter((p) => p.tags.includes(selectedTag));
     }
 
-    // 3. Search Query Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((p) => {
@@ -145,7 +140,6 @@ function App() {
       });
     }
 
-    // 4. Sort
     result.sort((a, b) => {
       if (sortBy === 'date-desc') {
         return new Date(b.exif.dateTaken).getTime() - new Date(a.exif.dateTaken).getTime();
@@ -309,6 +303,14 @@ function App() {
         onSelectTag={setSelectedTag}
       />
     </ThemeProvider>
+  );
+}
+
+export function App() {
+  return (
+    <LanguageProvider>
+      <MainApp />
+    </LanguageProvider>
   );
 }
 

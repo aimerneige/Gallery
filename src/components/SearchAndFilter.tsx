@@ -17,6 +17,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import type { Album } from '../types';
+import { useLanguage } from '../i18n';
 
 interface SearchAndFilterProps {
   searchQuery: string;
@@ -43,6 +44,7 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   onTagChange,
   allTags,
 }) => {
+  const { t } = useLanguage();
 
   const handleSearchKey = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchChange(e.target.value);
@@ -63,7 +65,7 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <Grid size={{ xs: 12, md: 5 }}>
           <TextField
             fullWidth
-            placeholder="Search by title, story, camera, or tags..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={handleSearchKey}
             slotProps={{
@@ -86,20 +88,20 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
           <FormControl fullWidth>
             <InputLabel id="album-select-label" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FilterAltIcon fontSize="small" /> Collection
+              <FilterAltIcon fontSize="small" /> {t('labelCollection')}
             </InputLabel>
             <Select
               labelId="album-select-label"
               value={selectedAlbum}
               label={
                 <span>
-                  <FilterAltIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} /> Collection
+                  <FilterAltIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} /> {t('labelCollection')}
                 </span>
               }
               onChange={handleAlbumSelect}
               sx={{ borderRadius: 3, bgcolor: 'background.paper' }}
             >
-              <MenuItem value="all">All Collections</MenuItem>
+              <MenuItem value="all">{t('allAlbums')}</MenuItem>
               {albums.map((album) => (
                 <MenuItem key={album.id} value={album.id}>
                   {album.name}
@@ -113,24 +115,24 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <Grid size={{ xs: 12, sm: 6, md: 3.5 }}>
           <FormControl fullWidth>
             <InputLabel id="sort-select-label" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <SortIcon fontSize="small" /> Sort By
+              <SortIcon fontSize="small" /> {t('labelSortBy')}
             </InputLabel>
             <Select
               labelId="sort-select-label"
               value={sortBy}
               label={
                 <span>
-                  <SortIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} /> Sort By
+                  <SortIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} /> {t('labelSortBy')}
                 </span>
               }
               onChange={handleSortSelect}
               sx={{ borderRadius: 3, bgcolor: 'background.paper' }}
             >
-              <MenuItem value="date-desc">Newest First</MenuItem>
-              <MenuItem value="date-asc">Oldest First</MenuItem>
-              <MenuItem value="focal-desc">Focal Length (Longest)</MenuItem>
-              <MenuItem value="focal-asc">Focal Length (Widest)</MenuItem>
-              <MenuItem value="iso-asc">Lowest ISO</MenuItem>
+              <MenuItem value="date-desc">{t('sortNewest')}</MenuItem>
+              <MenuItem value="date-asc">{t('sortOldest')}</MenuItem>
+              <MenuItem value="focal-desc">{t('sortFocalDesc')}</MenuItem>
+              <MenuItem value="focal-asc">{t('sortFocalAsc')}</MenuItem>
+              <MenuItem value="iso-asc">{t('sortIsoAsc')}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -140,7 +142,7 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       {allTags.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 500 }}>
-            Filter by tag:
+            {t('filterByTag')}
           </Typography>
           <Stack 
             direction="row" 
@@ -148,7 +150,7 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             sx={{ gap: 1, flexWrap: 'wrap' }}
           >
             <Chip
-              label="All Tags"
+              label={t('allTags')}
               onClick={() => onTagChange('')}
               variant={selectedTag === '' ? 'filled' : 'outlined'}
               color={selectedTag === '' ? 'primary' : 'default'}

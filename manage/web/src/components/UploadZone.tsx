@@ -10,6 +10,7 @@ import {
   Grid,
 } from '@mui/material';
 import { CloudUpload, Image as ImageIcon, AutoAwesome } from '@mui/icons-material';
+import { useLanguage } from '../i18n';
 
 interface UploadZoneProps {
   onFileSelected: (file: File) => void;
@@ -34,6 +35,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const { t } = useLanguage();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -95,7 +97,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           <Box sx={{ py: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <CircularProgress size={40} />
             <Typography variant="body1" color="text.secondary">
-              Extracting EXIF metadata & generating preview...
+              {t('extracting')}
             </Typography>
           </Box>
         ) : previewUrl ? (
@@ -139,10 +141,10 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               <CloudUpload color="primary" sx={{ fontSize: 36 }} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Drop your photo here, or browse
+              {t('dropTitle')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Supports RAW-exported JPEGs, PNGs, and WebP. Automatic EXIF metadata parsing!
+              {t('dropSubtitle')}
             </Typography>
           </Box>
         )}
@@ -151,13 +153,13 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
       {/* Compression & Optimization Controls */}
       <Paper sx={{ p: 3, mt: 3, borderRadius: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesome fontSize="small" color="primary" /> WebP Compression Settings
+          <AutoAwesome fontSize="small" color="primary" /> {t('compressionTitle')}
         </Typography>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              WebP Quality: <strong>{quality}%</strong>
+              {t('webpQuality')}: <strong>{quality}%</strong>
             </Typography>
             <Slider
               value={quality}
@@ -170,7 +172,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Max Edge Dimension: <strong>{maxDimension}px</strong>
+              {t('maxEdge')}: <strong>{maxDimension}px</strong>
             </Typography>
             <Slider
               value={maxDimension}

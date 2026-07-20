@@ -1,10 +1,10 @@
 import React from 'react';
-import { Box, Container, Typography, Paper, useTheme } from '@mui/material';
-import { Grid } from '@mui/material';
+import { Box, Container, Typography, Paper, useTheme, Grid } from '@mui/material';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import CameraIcon from '@mui/icons-material/Camera';
 import FilterTiltShiftIcon from '@mui/icons-material/FilterTiltShift';
+import { useLanguage } from '../i18n';
 
 interface HeroSectionProps {
   stats: {
@@ -18,12 +18,13 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { t } = useLanguage();
 
   const statItems = [
-    { label: 'Photographs', value: stats.photosCount, icon: <PhotoCameraIcon sx={{ fontSize: 28 }} /> },
-    { label: 'Collections', value: stats.albumsCount, icon: <CollectionsIcon sx={{ fontSize: 28 }} /> },
-    { label: 'Camera Bodies', value: stats.camerasCount, icon: <CameraIcon sx={{ fontSize: 28 }} /> },
-    { label: 'Lenses Used', value: stats.lensesCount, icon: <FilterTiltShiftIcon sx={{ fontSize: 28 }} /> },
+    { label: t('statPhotographs'), value: stats.photosCount, icon: <PhotoCameraIcon sx={{ fontSize: 28 }} /> },
+    { label: t('statCollections'), value: stats.albumsCount, icon: <CollectionsIcon sx={{ fontSize: 28 }} /> },
+    { label: t('statCameraBodies'), value: stats.camerasCount, icon: <CameraIcon sx={{ fontSize: 28 }} /> },
+    { label: t('statLenses'), value: stats.lensesCount, icon: <FilterTiltShiftIcon sx={{ fontSize: 28 }} /> },
   ];
 
   return (
@@ -68,7 +69,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 mb: 1.5,
               }}
             >
-              PHOTOGRAPHY PORTFOLIO
+              {t('heroOverline')}
             </Typography>
             <Typography
               variant="h1"
@@ -79,7 +80,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 letterSpacing: '-0.02em',
               }}
             >
-              Captured Moments &<br />
+              {t('heroTitle1')}<br />
               <Typography 
                 component="span" 
                 variant="inherit"
@@ -91,7 +92,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                EXIF Metadata
+                {t('heroTitle2')}
               </Typography>
             </Typography>
             <Typography
@@ -104,8 +105,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 mb: 4,
               }}
             >
-              A visual log of street, landscape, and minimal photography.
-              Click on any photograph to inspect full shooting parameters, camera settings, lens details, and capture location.
+              {t('heroSubtitle')}
             </Typography>
           </Grid>
 
