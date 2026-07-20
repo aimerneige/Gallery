@@ -56,7 +56,7 @@ interface CompiledDatabase {
 const DATA_DIR = path.resolve('data');
 const PUBLIC_DIR = path.resolve('public');
 const DB_FILE = path.join(DATA_DIR, 'gallery.db');
-const JSON_SOURCE_FILE = path.join(DATA_DIR, 'gallery.json');
+const PUBLIC_JSON_FILE = path.join(PUBLIC_DIR, 'data.json');
 const OUTPUT_FILE = path.join(PUBLIC_DIR, 'data.json');
 
 export function initDatabaseSchema(db: Database.Database) {
@@ -108,15 +108,15 @@ export function initDatabaseSchema(db: Database.Database) {
   `);
 }
 
-function migrateFromJson(db: Database.Database) {
-  if (!fs.existsSync(JSON_SOURCE_FILE)) return;
+function seedFromPublicJson(db: Database.Database) {
+  if (!fs.existsSync(PUBLIC_JSON_FILE)) return;
 
   const countPhotos: any = db.prepare('SELECT COUNT(*) as count FROM photos').get();
-  if (countPhotos.count > 0) return; // DB already has data
+  if (countPhotos.count > 0) return; // DB already initialized and populated
 
-  console.log('Migrating existing gallery.json data to SQLite database...');
+  console.log('Seeding SQLite database gallery.db from public/data.json...');
   try {
-    const raw = fs.readFileSync(JSON_SOURCE_FILE, 'utf8');
+    const raw = fs.readFileSync(PUBLIC_JSON_FILE, 'utf8');
     const jsonDb = JSON.parse(raw);
 
     const insertAlbum = db.prepare(`
@@ -182,9 +182,9 @@ function migrateFromJson(db: Database.Database) {
     });
 
     transaction();
-    console.log('Migration to SQLite completed successfully!');
+    console.log('Seeding SQLite database from public/data.json completed successfully!');
   } catch (err) {
-    console.error('Migration failed:', err);
+    console.error('Seeding failed:', err);
   }
 }
 
@@ -195,7 +195,7 @@ export function exportSqliteToJson(dbFile: string): CompiledDatabase {
 
   const db = new Database(dbFile);
   initDatabaseSchema(db);
-  migrateFromJson(db);
+  seedFromPublicJson(db);
 
   // Fetch albums
   const albumRows: any[] = db.prepare('SELECT * FROM albums').all();

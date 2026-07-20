@@ -12,6 +12,12 @@ dist-ssr
 *.local
 *.tsbuildinfo
 
+# SQLite Local Database (Option B: Local Admin DB un-tracked by Git)
+data/*.db
+*.db
+*.db-wal
+*.db-shm
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
