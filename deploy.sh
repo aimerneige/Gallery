@@ -37,3 +37,10 @@ if [ -n "$*" ]; then
 fi
 git commit -m "$msg"
 git push -f origin master
+
+info "DONE Removing dist..."
+
+if [[ -d "$ROOT_DIR/dist" ]]; then
+  info "Deleting old dist directory..."
+  rm -rf "$ROOT_DIR/dist/"
+fi
