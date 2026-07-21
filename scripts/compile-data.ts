@@ -95,6 +95,7 @@ const DATA_DIR = path.resolve('data');
 const PUBLIC_DIR = path.resolve('public');
 const CONFIG_FILE = path.resolve('config.yaml');
 const DB_FILE = path.join(DATA_DIR, 'gallery.db');
+const SOURCE_JSON_FILE = path.join(DATA_DIR, 'gallery.json');
 const PUBLIC_JSON_FILE = path.join(PUBLIC_DIR, 'data.json');
 const OUTPUT_FILE = path.join(PUBLIC_DIR, 'data.json');
 
@@ -223,7 +224,6 @@ export function loadSiteConfig(): SiteConfig {
   }
 }
 
-
 export function initDatabaseSchema(db: Database.Database) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS albums (
@@ -282,14 +282,20 @@ export function initDatabaseSchema(db: Database.Database) {
 }
 
 function seedFromPublicJson(db: Database.Database) {
-  if (!fs.existsSync(PUBLIC_JSON_FILE)) return;
+  const seedFile = fs.existsSync(SOURCE_JSON_FILE)
+    ? SOURCE_JSON_FILE
+    : fs.existsSync(PUBLIC_JSON_FILE)
+    ? PUBLIC_JSON_FILE
+    : null;
+
+  if (!seedFile) return;
 
   const countPhotos: any = db.prepare('SELECT COUNT(*) as count FROM photos').get();
   if (countPhotos.count > 0) return; // DB already initialized and populated
 
-  console.log('Seeding SQLite database gallery.db from public/data.json...');
+  console.log(`Seeding SQLite database gallery.db from ${seedFile}...`);
   try {
-    const raw = fs.readFileSync(PUBLIC_JSON_FILE, 'utf8');
+    const raw = fs.readFileSync(seedFile, 'utf8');
     const jsonDb = JSON.parse(raw);
 
     const insertAlbum = db.prepare(`
@@ -451,8 +457,18 @@ function compile() {
       fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
 
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
+    // Write source gallery.json for Git tracking
+    const sourceDb = { albums: compiledDb.albums, photos: compiledDb.photos };
+    fs.writeFileSync(SOURCE_JSON_FILE, JSON.stringify(sourceDb, null, 2), 'utf8');
+
+    // Export minified compiled JSON for static web app
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify(compiledDb), 'utf8');
     console.log(`Compiled JSON successfully exported from SQLite to ${OUTPUT_FILE}`);
+    console.log(`Synced source database JSON to ${SOURCE_JSON_FILE}`);
     console.log(`Exported ${compiledDb.photos.length} photos and ${compiledDb.albums.length} albums.`);
     console.log('--- Compilation Finished Successfully ---');
   } catch (error) {

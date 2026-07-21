@@ -19,7 +19,7 @@ site:
   logoIcon: "camera"
 
   # GitHub 链接 (若为空或留空，则隐藏右上角 GitHub 图标按钮)
-  githubUrl: "https://github.com/aimerneige/NicoGallery"
+  githubUrl: "https://github.com/aimerneige/Gallery"
 
   # 是否显示双语切换按钮 (Show Language Switcher)
   showLanguageToggle: true

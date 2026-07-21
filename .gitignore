@@ -18,6 +18,9 @@ data/*.db
 *.db-wal
 *.db-shm
 
+# Compiled output data (generated at build time)
+public/data.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
