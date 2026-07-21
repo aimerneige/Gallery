@@ -17,6 +17,7 @@ data/*.db
 *.db
 *.db-wal
 *.db-shm
+!data/gallery.db
 
 # Compiled output data (generated at build time)
 public/data.json
