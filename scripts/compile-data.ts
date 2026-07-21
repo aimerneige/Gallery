@@ -1,6 +1,42 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import Database from 'better-sqlite3';
+import * as YAML from 'yaml';
+
+interface LocalizedString {
+  en?: string;
+  zh?: string;
+}
+
+export interface SiteConfig {
+  site: {
+    title: string | LocalizedString;
+    description: string;
+    logoIcon: 'camera' | 'aperture' | 'collections' | 'photo' | 'none';
+    githubUrl?: string;
+    showLanguageToggle: boolean;
+    showThemeToggle: boolean;
+  };
+  hero: {
+    showHero: boolean;
+    overline: string | LocalizedString;
+    titleLine1: string | LocalizedString;
+    titleLine2: string | LocalizedString;
+    subtitle: string | LocalizedString;
+    showStats: boolean;
+  };
+  theme: {
+    defaultMode: 'dark' | 'light' | 'system';
+  };
+  gallery: {
+    defaultSortBy: string;
+  };
+  footer: {
+    showFooter: boolean;
+    copyright: string;
+    caption: string;
+  };
+}
 
 interface CameraInfo {
   make: string;
@@ -50,15 +86,143 @@ interface CompiledAlbum {
 }
 
 interface CompiledDatabase {
+  config: SiteConfig;
   albums: CompiledAlbum[];
   photos: CompiledPhoto[];
 }
 
 const DATA_DIR = path.resolve('data');
 const PUBLIC_DIR = path.resolve('public');
+const CONFIG_FILE = path.resolve('config.yaml');
 const DB_FILE = path.join(DATA_DIR, 'gallery.db');
 const PUBLIC_JSON_FILE = path.join(PUBLIC_DIR, 'data.json');
 const OUTPUT_FILE = path.join(PUBLIC_DIR, 'data.json');
+
+const DEFAULT_CONFIG_YAML = `# ==========================================
+# NicoGallery - 项目全局配置文件 (config.yaml)
+# 普通用户无需修改代码，修改此文件后重新编译即可生效
+# ==========================================
+
+# 网站与顶栏设置 (Site & Header Settings)
+site:
+  # 左上角顶栏标题 (Navigation Header Title)
+  # 支持单字符串（如 "GALLERY"），或针对中/英文指定不同标题：
+  # title:
+  #   en: "NicoGallery"
+  #   zh: "Nico画廊"
+  title: "GALLERY"
+
+  # 页面 SEO 描述 (SEO Meta Description)
+  description: "A modern photography portfolio featuring rich EXIF metadata and interactive collections."
+
+  # 顶栏左侧图标 (Logo Icon): "camera" | "aperture" | "collections" | "photo" | "none"
+  logoIcon: "camera"
+
+  # GitHub 链接 (若为空或留空，则隐藏右上角 GitHub 图标按钮)
+  githubUrl: "https://github.com/aimerneige/NicoGallery"
+
+  # 是否显示双语切换按钮 (Show Language Switcher)
+  showLanguageToggle: true
+
+  # 是否显示深浅色主题切换按钮 (Show Theme Toggle Button)
+  showThemeToggle: true
+
+# 首页 Hero 顶部横幅设置 (Hero Banner Settings)
+hero:
+  # 是否开启 Hero 顶部横幅 (Enable Hero Section)
+  showHero: true
+
+  # 顶部小标题 (Overline Text)
+  overline:
+    en: "PHOTOGRAPHY PORTFOLIO"
+    zh: "个人摄影作品集"
+
+  # 主标题第一行 (Title Line 1)
+  titleLine1:
+    en: "Captured Moments &"
+    zh: "定格光影瞬间与"
+
+  # 主标题第二行 (渐变高亮 Title Line 2)
+  titleLine2:
+    en: "EXIF Metadata"
+    zh: "EXIF 拍摄参数"
+
+  # 描述副标题 (Subtitle Description)
+  subtitle:
+    en: "A visual log of street, landscape, and minimal photography. Click on any photograph to inspect full shooting parameters, camera settings, lens details, and capture location."
+    zh: "街头、风光与极简主义摄影的视觉记录。点击任意照片即可查看完整拍摄参数、相机镜头细节及地理位置。"
+
+  # 是否显示数据统计面板 (Show Stats Cards: Photographs, Collections, Cameras, Lenses)
+  showStats: true
+
+# 外观与主题设置 (Theme Settings)
+theme:
+  # 默认主题模式 (Default Theme Mode): "dark" | "light" | "system"
+  defaultMode: "dark"
+
+# 画廊展示与排序 (Gallery Settings)
+gallery:
+  # 默认排序方式 (Default Sort Order): "date-desc" | "date-asc" | "focal-desc" | "focal-asc" | "iso-asc"
+  defaultSortBy: "date-desc"
+
+# 页脚设置 (Footer Settings)
+footer:
+  # 是否显示页脚 (Show Footer)
+  showFooter: true
+
+  # 版权信息 (Copyright Text)
+  copyright: "Gallery. All rights reserved."
+
+  # 页脚说明文本 (Footer Caption)
+  caption: "Built with React, Vite & Material UI. Images delivered via Cloudflare R2."
+`;
+
+export function loadSiteConfig(): SiteConfig {
+  if (!fs.existsSync(CONFIG_FILE)) {
+    console.log('config.yaml not found. Creating default config.yaml...');
+    fs.writeFileSync(CONFIG_FILE, DEFAULT_CONFIG_YAML, 'utf8');
+  }
+
+  try {
+    const rawContent = fs.readFileSync(CONFIG_FILE, 'utf8');
+    const parsed = YAML.parse(rawContent) || {};
+    const defaultConfig = YAML.parse(DEFAULT_CONFIG_YAML);
+
+    return {
+      site: {
+        title: parsed.site?.title ?? defaultConfig.site.title,
+        description: parsed.site?.description ?? defaultConfig.site.description,
+        logoIcon: parsed.site?.logoIcon ?? defaultConfig.site.logoIcon,
+        githubUrl: parsed.site?.githubUrl !== undefined ? parsed.site.githubUrl : defaultConfig.site.githubUrl,
+        showLanguageToggle: parsed.site?.showLanguageToggle ?? defaultConfig.site.showLanguageToggle,
+        showThemeToggle: parsed.site?.showThemeToggle ?? defaultConfig.site.showThemeToggle,
+      },
+      hero: {
+        showHero: parsed.hero?.showHero ?? defaultConfig.hero.showHero,
+        overline: parsed.hero?.overline ?? defaultConfig.hero.overline,
+        titleLine1: parsed.hero?.titleLine1 ?? defaultConfig.hero.titleLine1,
+        titleLine2: parsed.hero?.titleLine2 ?? defaultConfig.hero.titleLine2,
+        subtitle: parsed.hero?.subtitle ?? defaultConfig.hero.subtitle,
+        showStats: parsed.hero?.showStats ?? defaultConfig.hero.showStats,
+      },
+      theme: {
+        defaultMode: parsed.theme?.defaultMode ?? defaultConfig.theme.defaultMode,
+      },
+      gallery: {
+        defaultSortBy: parsed.gallery?.defaultSortBy ?? defaultConfig.gallery.defaultSortBy,
+      },
+      footer: {
+        showFooter: parsed.footer?.showFooter ?? defaultConfig.footer.showFooter,
+        copyright: parsed.footer?.copyright ?? defaultConfig.footer.copyright,
+        caption: parsed.footer?.caption ?? defaultConfig.footer.caption,
+      },
+    };
+  } catch (err) {
+    console.error('Error reading/parsing config.yaml, falling back to defaults:', err);
+    return YAML.parse(DEFAULT_CONFIG_YAML);
+  }
+}
+
 
 export function initDatabaseSchema(db: Database.Database) {
   db.exec(`
@@ -269,7 +433,10 @@ export function exportSqliteToJson(dbFile: string): CompiledDatabase {
 
   db.close();
 
+  const config = loadSiteConfig();
+
   return {
+    config,
     albums: compiledAlbums,
     photos: compiledPhotos,
   };

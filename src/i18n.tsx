@@ -167,3 +167,14 @@ export const useLanguage = (): LanguageContextType => {
   }
   return context;
 };
+
+export function getLocalizedText(
+  val: string | { en?: string; zh?: string } | undefined,
+  lang: Language,
+  fallback: string = ''
+): string {
+  if (!val) return fallback;
+  if (typeof val === 'string') return val;
+  return val[lang] || val.en || val.zh || fallback;
+}
+

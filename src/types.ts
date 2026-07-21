@@ -1,3 +1,38 @@
+export interface LocalizedString {
+  en?: string;
+  zh?: string;
+}
+
+export interface SiteConfig {
+  site: {
+    title: string | LocalizedString;
+    description: string;
+    logoIcon: 'camera' | 'aperture' | 'collections' | 'photo' | 'none';
+    githubUrl?: string;
+    showLanguageToggle: boolean;
+    showThemeToggle: boolean;
+  };
+  hero: {
+    showHero: boolean;
+    overline: string | LocalizedString;
+    titleLine1: string | LocalizedString;
+    titleLine2: string | LocalizedString;
+    subtitle: string | LocalizedString;
+    showStats: boolean;
+  };
+  theme: {
+    defaultMode: 'dark' | 'light' | 'system';
+  };
+  gallery: {
+    defaultSortBy: string;
+  };
+  footer: {
+    showFooter: boolean;
+    copyright: string;
+    caption: string;
+  };
+}
+
 export interface CameraInfo {
   make: string;
   model: string;
@@ -47,6 +82,8 @@ export interface Album {
 }
 
 export interface GalleryData {
+  config?: SiteConfig;
   albums: Album[];
   photos: Photo[];
 }
+

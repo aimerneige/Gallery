@@ -18,7 +18,8 @@
     "@mui/material": "^9.2.0",
     "better-sqlite3": "^12.11.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

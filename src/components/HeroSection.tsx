@@ -4,7 +4,8 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import CameraIcon from '@mui/icons-material/Camera';
 import FilterTiltShiftIcon from '@mui/icons-material/FilterTiltShift';
-import { useLanguage } from '../i18n';
+import { useLanguage, getLocalizedText } from '../i18n';
+import type { SiteConfig } from '../types';
 
 interface HeroSectionProps {
   stats: {
@@ -13,12 +14,35 @@ interface HeroSectionProps {
     camerasCount: number;
     lensesCount: number;
   };
+  config?: SiteConfig['hero'];
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ stats, config }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+
+  if (config && config.showHero === false) {
+    return null;
+  }
+
+  const overlineText = config?.overline
+    ? getLocalizedText(config.overline, language, t('heroOverline'))
+    : t('heroOverline');
+
+  const titleLine1Text = config?.titleLine1
+    ? getLocalizedText(config.titleLine1, language, t('heroTitle1'))
+    : t('heroTitle1');
+
+  const titleLine2Text = config?.titleLine2
+    ? getLocalizedText(config.titleLine2, language, t('heroTitle2'))
+    : t('heroTitle2');
+
+  const subtitleText = config?.subtitle
+    ? getLocalizedText(config.subtitle, language, t('heroSubtitle'))
+    : t('heroSubtitle');
+
+  const showStats = config?.showStats ?? true;
 
   const statItems = [
     { label: t('statPhotographs'), value: stats.photosCount, icon: <PhotoCameraIcon sx={{ fontSize: 28 }} /> },
@@ -57,7 +81,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
 
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
         <Grid container spacing={6} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, lg: 7 }}>
+          <Grid size={{ xs: 12, lg: showStats ? 7 : 12 }}>
             <Typography
               variant="overline"
               sx={{
@@ -69,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 mb: 1.5,
               }}
             >
-              {t('heroOverline')}
+              {overlineText}
             </Typography>
             <Typography
               variant="h1"
@@ -80,7 +104,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 letterSpacing: '-0.02em',
               }}
             >
-              {t('heroTitle1')}<br />
+              {titleLine1Text}<br />
               <Typography 
                 component="span" 
                 variant="inherit"
@@ -92,7 +116,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                {t('heroTitle2')}
+                {titleLine2Text}
               </Typography>
             </Typography>
             <Typography
@@ -105,52 +129,55 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 mb: 4,
               }}
             >
-              {t('heroSubtitle')}
+              {subtitleText}
             </Typography>
           </Grid>
 
-          <Grid size={{ xs: 12, lg: 5 }}>
-            <Grid container spacing={2}>
-              {statItems.map((item, index) => (
-                <Grid size={{ xs: 6 }} key={index}>
-                  <Paper
-                    sx={{
-                      p: 3,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 2,
-                      bgcolor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)',
-                      backdropFilter: 'blur(8px)',
-                      border: '1px solid',
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    }}
-                  >
-                    <Box sx={{ color: 'text.secondary', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {item.icon}
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontSize: { xs: '1.75rem', md: '2.25rem' },
-                          fontWeight: 700,
-                          lineHeight: 1,
-                          mb: 0.5,
-                        }}
-                      >
-                        {item.value}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.8rem' }}>
-                        {item.label}
-                      </Typography>
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
+          {showStats && (
+            <Grid size={{ xs: 12, lg: 5 }}>
+              <Grid container spacing={2}>
+                {statItems.map((item, index) => (
+                  <Grid size={{ xs: 6 }} key={index}>
+                    <Paper
+                      sx={{
+                        p: 3,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        bgcolor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                      }}
+                    >
+                      <Box sx={{ color: 'text.secondary', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {item.icon}
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="h3"
+                          sx={{
+                            fontSize: { xs: '1.75rem', md: '2.25rem' },
+                            fontWeight: 700,
+                            lineHeight: 1,
+                            mb: 0.5,
+                          }}
+                        >
+                          {item.value}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.8rem' }}>
+                          {item.label}
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
             </Grid>
-          </Grid>
+          )}
         </Grid>
       </Container>
     </Box>
   );
 };
+

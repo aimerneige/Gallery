@@ -17,10 +17,12 @@ import { HeroSection } from './components/HeroSection';
 import { SearchAndFilter } from './components/SearchAndFilter';
 import { PhotoCard } from './components/PhotoCard';
 import { PhotoDetailsModal } from './components/PhotoDetailsModal';
-import { LanguageProvider } from './i18n';
+import { LanguageProvider, useLanguage, getLocalizedText } from './i18n';
 import type { GalleryData, Photo } from './types';
 
 function MainApp() {
+  const { language } = useLanguage();
+
   // Theme state
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
     const savedMode = localStorage.getItem('theme-mode');
@@ -65,6 +67,16 @@ function MainApp() {
       .then((data: GalleryData) => {
         setGalleryData(data);
         setError(null);
+        if (data.config?.gallery?.defaultSortBy) {
+          setSortBy(data.config.gallery.defaultSortBy);
+        }
+        // Apply default theme mode if user has not stored explicit preference
+        if (!localStorage.getItem('theme-mode') && data.config?.theme?.defaultMode) {
+          const cfgMode = data.config.theme.defaultMode;
+          if (cfgMode === 'light' || cfgMode === 'dark') {
+            setMode(cfgMode);
+          }
+        }
       })
       .catch((err) => {
         console.error('Error loading gallery data:', err);
@@ -74,6 +86,15 @@ function MainApp() {
         setLoading(false);
       });
   }, []);
+
+  // Update document title dynamically based on config
+  useEffect(() => {
+    if (galleryData?.config?.site) {
+      const siteTitle = getLocalizedText(galleryData.config.site.title, language, 'GALLERY');
+      const siteDesc = galleryData.config.site.description || '';
+      document.title = siteDesc ? `${siteTitle} - ${siteDesc}` : siteTitle;
+    }
+  }, [galleryData, language]);
 
   // Compute unique camera bodies and lenses for Hero stats
   const stats = useMemo(() => {
@@ -168,18 +189,22 @@ function MainApp() {
     return galleryData.albums.find((a) => a.id === selectedAlbum) || null;
   }, [galleryData, selectedAlbum]);
 
+  const siteConfig = galleryData?.config?.site;
+  const heroConfig = galleryData?.config?.hero;
+  const footerConfig = galleryData?.config?.footer;
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       
       {/* Header */}
-      <Header mode={mode} onToggleTheme={handleToggleTheme} />
+      <Header mode={mode} onToggleTheme={handleToggleTheme} config={siteConfig} />
 
       {/* Main layout */}
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         
         {/* Hero Section */}
-        <HeroSection stats={stats} />
+        <HeroSection stats={stats} config={heroConfig} />
 
         <Container maxWidth="xl" sx={{ pb: 12, flexGrow: 1 }}>
           
@@ -274,25 +299,29 @@ function MainApp() {
         </Container>
 
         {/* Footer */}
-        <Box 
-          component="footer" 
-          sx={{ 
-            py: 4, 
-            borderTop: '1px solid', 
-            borderColor: 'divider', 
-            bgcolor: 'background.paper',
-            mt: 'auto'
-          }}
-        >
-          <Container maxWidth="xl">
-            <Typography variant="body2" color="text.secondary" align="center">
-              &copy; {new Date().getFullYear()} Gallery. All rights reserved.
-            </Typography>
-            <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', mt: 1 }}>
-              Built with React, Vite & Material UI. Images delivered via Cloudflare R2.
-            </Typography>
-          </Container>
-        </Box>
+        {footerConfig?.showFooter !== false && (
+          <Box 
+            component="footer" 
+            sx={{ 
+              py: 4, 
+              borderTop: '1px solid', 
+              borderColor: 'divider', 
+              bgcolor: 'background.paper',
+              mt: 'auto'
+            }}
+          >
+            <Container maxWidth="xl">
+              <Typography variant="body2" color="text.secondary" align="center">
+                &copy; {new Date().getFullYear()} {footerConfig?.copyright || 'Gallery. All rights reserved.'}
+              </Typography>
+              {footerConfig?.caption && (
+                <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', mt: 1 }}>
+                  {footerConfig.caption}
+                </Typography>
+              )}
+            </Container>
+          </Box>
+        )}
       </Box>
 
       {/* Photo Details Modal Popup */}
