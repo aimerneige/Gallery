@@ -61,7 +61,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
       <DialogContent dividers>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            If Cloudflare R2 credentials are left empty, the backend will automatically operate in <strong>Local Fallback Mode</strong> and save WebP images into `public/uploads/`.
+            Cloudflare R2 is required for storing uploaded photos. Please configure your credentials to enable uploads.
           </Alert>
 
           <TextField
