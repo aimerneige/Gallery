@@ -72,7 +72,7 @@ export const translations = {
     albumCreated: 'Album "{name}" created!',
     albumUpdated: 'Album updated!',
     albumDeleted: 'Album deleted.',
-    settingsSaved: 'R2 Settings saved.',
+    settingsSaved: 'Storage Settings saved.',
   },
   zh: {
     // Navbar
@@ -143,7 +143,7 @@ export const translations = {
     albumCreated: '相册 "{name}" 已创建！',
     albumUpdated: '相册已更新！',
     albumDeleted: '相册已删除。',
-    settingsSaved: 'R2 存储设置已保存。',
+    settingsSaved: '存储设置已保存。',
   },
 };
 

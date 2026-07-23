@@ -20,6 +20,7 @@ import { PhotoGrid } from './components/PhotoGrid';
 import { EditPhotoDialog } from './components/EditPhotoDialog';
 import { AlbumManager } from './components/AlbumManager';
 import { SettingsDialog, R2SettingsForm } from './components/SettingsDialog';
+import { useLanguage } from './i18n';
 
 const initialMetadataForm: MetadataFormState = {
   id: '',
@@ -39,6 +40,7 @@ const initialMetadataForm: MetadataFormState = {
 };
 
 export const App: React.FC = () => {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'light' | 'dark'>('dark');
   const theme = useMemo(() => getTheme(mode), [mode]);
 
@@ -66,7 +68,11 @@ export const App: React.FC = () => {
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [r2Config, setR2Config] = useState<R2SettingsForm>({
+    storageType: 'r2',
     accountId: '',
+    minioEndpoint: '',
+    minioRegion: 'us-east-1',
+    minioUsePathStyle: true,
     accessKeyId: '',
     secretAccessKey: '',
     bucketName: 'nicogallery',
@@ -356,7 +362,7 @@ export const App: React.FC = () => {
       });
       if (res.ok) {
         setR2Config(newConfig);
-        setToast({ open: true, message: 'R2 Settings saved.', severity: 'success' });
+        setToast({ open: true, message: t('settingsSaved'), severity: 'success' });
       }
     } catch (err: any) {
       setToast({ open: true, message: err.message, severity: 'error' });

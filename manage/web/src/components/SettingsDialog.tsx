@@ -8,6 +8,12 @@ import {
   TextField,
   Stack,
   Alert,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  Checkbox,
 } from '@mui/material';
 import { CloudQueue } from '@mui/icons-material';
 
@@ -19,7 +25,11 @@ interface SettingsDialogProps {
 }
 
 export interface R2SettingsForm {
+  storageType?: 'r2' | 'minio';
   accountId: string;
+  minioEndpoint?: string;
+  minioRegion?: string;
+  minioUsePathStyle?: boolean;
   accessKeyId: string;
   secretAccessKey: string;
   bucketName: string;
@@ -39,7 +49,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
     setForm(initialConfig);
   }, [initialConfig]);
 
-  const handleChange = (field: keyof R2SettingsForm, value: string) => {
+  const handleChange = (field: keyof R2SettingsForm, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -53,57 +63,105 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
     }
   };
 
+  const currentStorageType = form.storageType || 'r2';
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <CloudQueue color="primary" /> Cloudflare R2 Storage Settings
+        <CloudQueue color="primary" /> Storage Server Settings
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Cloudflare R2 is required for storing uploaded photos. Please configure your credentials to enable uploads.
+            Choose your storage provider and configure the credentials to enable uploading photos.
           </Alert>
 
-          <TextField
-            label="Cloudflare Account ID"
-            fullWidth
-            size="small"
-            value={form.accountId}
-            onChange={(e) => handleChange('accountId', e.target.value)}
-            placeholder="e.g. 8f9a0b1c2d3e4f5a6b7c8d9e"
-          />
+          <FormControl component="fieldset">
+            <FormLabel component="legend" sx={{ fontWeight: 600, mb: 1, fontSize: '0.875rem' }}>
+              Storage Provider
+            </FormLabel>
+            <RadioGroup
+              row
+              value={currentStorageType}
+              onChange={(e) => handleChange('storageType', e.target.value as 'r2' | 'minio')}
+            >
+              <FormControlLabel value="r2" control={<Radio size="small" />} label="Cloudflare R2" />
+              <FormControlLabel value="minio" control={<Radio size="small" />} label="MinIO / S3 Compatible" />
+            </RadioGroup>
+          </FormControl>
+
+          {currentStorageType === 'r2' ? (
+            <TextField
+              label="Cloudflare Account ID"
+              fullWidth
+              size="small"
+              value={form.accountId || ''}
+              onChange={(e) => handleChange('accountId', e.target.value)}
+              placeholder="e.g. 8f9a0b1c2d3e4f5a6b7c8d9e"
+            />
+          ) : (
+            <Stack spacing={2}>
+              <TextField
+                label="MinIO / S3 Endpoint"
+                fullWidth
+                size="small"
+                value={form.minioEndpoint || ''}
+                onChange={(e) => handleChange('minioEndpoint', e.target.value)}
+                placeholder="e.g. http://localhost:9000 or https://minio.example.com"
+              />
+              <TextField
+                label="Region"
+                fullWidth
+                size="small"
+                value={form.minioRegion || ''}
+                onChange={(e) => handleChange('minioRegion', e.target.value)}
+                placeholder="us-east-1"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={form.minioUsePathStyle !== false}
+                    onChange={(e) => handleChange('minioUsePathStyle', e.target.checked)}
+                  />
+                }
+                label="Use Path-Style URLs (bucket name in path)"
+              />
+            </Stack>
+          )}
 
           <TextField
-            label="R2 Access Key ID"
+            label="Access Key ID"
             fullWidth
             size="small"
-            value={form.accessKeyId}
+            value={form.accessKeyId || ''}
             onChange={(e) => handleChange('accessKeyId', e.target.value)}
           />
 
           <TextField
-            label="R2 Secret Access Key"
+            label="Secret Access Key"
             fullWidth
             size="small"
             type="password"
-            value={form.secretAccessKey}
+            value={form.secretAccessKey || ''}
             onChange={(e) => handleChange('secretAccessKey', e.target.value)}
+            placeholder={form.secretAccessKey ? '••••••••' : ''}
           />
 
           <TextField
-            label="R2 Bucket Name"
+            label="Bucket Name"
             fullWidth
             size="small"
-            value={form.bucketName}
+            value={form.bucketName || ''}
             onChange={(e) => handleChange('bucketName', e.target.value)}
             placeholder="nicogallery"
           />
 
           <TextField
-            label="Public URL Prefix / Custom Domain"
+            label="Public URL Prefix / Custom Domain (Optional)"
             fullWidth
             size="small"
-            value={form.publicUrlPrefix}
+            value={form.publicUrlPrefix || ''}
             onChange={(e) => handleChange('publicUrlPrefix', e.target.value)}
             placeholder="e.g. https://cdn.example.com or https://pub-xxx.r2.dev"
           />

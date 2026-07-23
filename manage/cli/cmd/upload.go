@@ -34,11 +34,19 @@ var (
 	tagsFlag            []string
 	qualityFlag         int
 	maxDimensionFlag    int
+	storageTypeFlag     string
 	r2AccountIDFlag     string
 	r2AccessKeyIDFlag   string
 	r2SecretKeyFlag     string
 	r2BucketFlag        string
 	r2PublicURLFlag     string
+	minioEndpointFlag   string
+	minioAccessKeyFlag  string
+	minioSecretKeyFlag  string
+	minioBucketFlag     string
+	minioPublicURLFlag  string
+	minioRegionFlag     string
+	minioUsePathStyleFlag bool
 	dryRunFlag          bool
 )
 
@@ -110,16 +118,47 @@ var uploadCmd = &cobra.Command{
 		}
 		fmt.Printf("✔ WebP compressed successfully: %d x %d px (%d KB)\n", procResult.Width, procResult.Height, len(procResult.Buffer)/1024)
 
-		// 3. Upload strictly to Cloudflare R2
-		r2Cfg := storage.Config{
-			AccountID:       getEnvOrFlag(r2AccountIDFlag, "R2_ACCOUNT_ID"),
-			AccessKeyID:     getEnvOrFlag(r2AccessKeyIDFlag, "R2_ACCESS_KEY_ID"),
-			SecretAccessKey: getEnvOrFlag(r2SecretKeyFlag, "R2_SECRET_ACCESS_KEY"),
-			BucketName:      getEnvOrFlag(r2BucketFlag, "R2_BUCKET_NAME"),
-			PublicURLPrefix: getEnvOrFlag(r2PublicURLFlag, "R2_PUBLIC_URL_PREFIX"),
+		// 3. Determine and initialize storage provider
+		var store storage.Storage
+		storageType := strings.ToLower(getEnvOrFlag(storageTypeFlag, "STORAGE_TYPE"))
+		if storageType == "" {
+			storageType = "r2"
 		}
-		if r2Cfg.BucketName == "" {
-			r2Cfg.BucketName = "nicogallery"
+
+		if storageType == "minio" {
+			minioCfg := storage.MinioConfig{
+				Endpoint:        getEnvOrFlag(minioEndpointFlag, "MINIO_ENDPOINT"),
+				AccessKeyID:     getEnvOrFlag(minioAccessKeyFlag, "MINIO_ACCESS_KEY_ID"),
+				SecretAccessKey: getEnvOrFlag(minioSecretKeyFlag, "MINIO_SECRET_ACCESS_KEY"),
+				BucketName:      getEnvOrFlag(minioBucketFlag, "MINIO_BUCKET_NAME"),
+				PublicURLPrefix: getEnvOrFlag(minioPublicURLFlag, "MINIO_PUBLIC_URL_PREFIX"),
+				Region:          getEnvOrFlag(minioRegionFlag, "MINIO_REGION"),
+				UsePathStyle:    minioUsePathStyleFlag || os.Getenv("MINIO_USE_PATH_STYLE") == "true",
+			}
+			if minioCfg.BucketName == "" {
+				minioCfg.BucketName = "nicogallery"
+			}
+			if minioCfg.Region == "" {
+				minioCfg.Region = "us-east-1"
+			}
+			if os.Getenv("MINIO_USE_PATH_STYLE") != "" {
+				minioCfg.UsePathStyle = os.Getenv("MINIO_USE_PATH_STYLE") == "true"
+			}
+			fmt.Printf("==> Uploading image asset to MinIO storage (bucket: %s)...\n", minioCfg.BucketName)
+			store = storage.NewMinioStorage(minioCfg)
+		} else {
+			r2Cfg := storage.Config{
+				AccountID:       getEnvOrFlag(r2AccountIDFlag, "R2_ACCOUNT_ID"),
+				AccessKeyID:     getEnvOrFlag(r2AccessKeyIDFlag, "R2_ACCESS_KEY_ID"),
+				SecretAccessKey: getEnvOrFlag(r2SecretKeyFlag, "R2_SECRET_ACCESS_KEY"),
+				BucketName:      getEnvOrFlag(r2BucketFlag, "R2_BUCKET_NAME"),
+				PublicURLPrefix: getEnvOrFlag(r2PublicURLFlag, "R2_PUBLIC_URL_PREFIX"),
+			}
+			if r2Cfg.BucketName == "" {
+				r2Cfg.BucketName = "nicogallery"
+			}
+			fmt.Printf("==> Uploading image asset to Cloudflare R2 storage (bucket: %s)...\n", r2Cfg.BucketName)
+			store = storage.NewR2Storage(r2Cfg)
 		}
 
 		targetDbPath := dbPath
@@ -127,13 +166,11 @@ var uploadCmd = &cobra.Command{
 			targetDbPath = database.GetDefaultDbPath()
 		}
 
-		fmt.Println("==> Uploading image asset to storage...")
-		var store storage.Storage = storage.NewR2Storage(r2Cfg)
-		r2Url, err := store.Upload(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID))
+		uploadedUrl, err := store.Upload(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID))
 		if err != nil {
 			return fmt.Errorf("storage upload error: %w", err)
 		}
-		fmt.Printf("✔ Image URL: %s\n", r2Url)
+		fmt.Printf("✔ Image URL: %s\n", uploadedUrl)
 
 		// 4. Update Database
 		if dryRunFlag {
@@ -145,7 +182,7 @@ var uploadCmd = &cobra.Command{
 			ID:          photoID,
 			Title:       photoTitle,
 			Description: descriptionFlag,
-			R2URL:       r2Url,
+			R2URL:       uploadedUrl,
 			Width:       procResult.Width,
 			Height:      procResult.Height,
 			Camera: database.CameraInfo{
@@ -206,10 +243,18 @@ func init() {
 	uploadCmd.Flags().StringSliceVar(&tagsFlag, "tags", []string{}, "Comma-separated tag names")
 	uploadCmd.Flags().IntVar(&qualityFlag, "quality", 80, "WebP compression quality (1-100)")
 	uploadCmd.Flags().IntVar(&maxDimensionFlag, "max-dimension", 1600, "Max edge dimension in pixels")
+	uploadCmd.Flags().StringVar(&storageTypeFlag, "storage-type", "", "Storage provider type: r2 or minio")
 	uploadCmd.Flags().StringVar(&r2AccountIDFlag, "r2-account-id", "", "Cloudflare R2 Account ID")
 	uploadCmd.Flags().StringVar(&r2AccessKeyIDFlag, "r2-access-key-id", "", "Cloudflare R2 Access Key ID")
 	uploadCmd.Flags().StringVar(&r2SecretKeyFlag, "r2-secret-access-key", "", "Cloudflare R2 Secret Access Key")
 	uploadCmd.Flags().StringVar(&r2BucketFlag, "r2-bucket", "", "Cloudflare R2 Bucket Name")
 	uploadCmd.Flags().StringVar(&r2PublicURLFlag, "r2-public-url", "", "Cloudflare R2 Public Domain Prefix")
+	uploadCmd.Flags().StringVar(&minioEndpointFlag, "minio-endpoint", "", "MinIO / S3 endpoint URL (e.g. http://localhost:9000)")
+	uploadCmd.Flags().StringVar(&minioAccessKeyFlag, "minio-access-key-id", "", "MinIO / S3 Access Key ID")
+	uploadCmd.Flags().StringVar(&minioSecretKeyFlag, "minio-secret-access-key", "", "MinIO / S3 Secret Access Key")
+	uploadCmd.Flags().StringVar(&minioBucketFlag, "minio-bucket", "", "MinIO / S3 Bucket Name")
+	uploadCmd.Flags().StringVar(&minioPublicURLFlag, "minio-public-url", "", "MinIO / S3 Public CDN URL Prefix (optional)")
+	uploadCmd.Flags().StringVar(&minioRegionFlag, "minio-region", "us-east-1", "MinIO / S3 Region (default: us-east-1)")
+	uploadCmd.Flags().BoolVar(&minioUsePathStyleFlag, "minio-use-path-style", true, "Use path-style S3 URLs (bucket in path)")
 	uploadCmd.Flags().BoolVar(&dryRunFlag, "dry-run", false, "Validate & process without updating gallery database")
 }

@@ -239,7 +239,7 @@ app.delete('/api/albums/:id', (req, res) => {
   }
 });
 
-// 9. GET & POST /api/config - Manage R2 configuration
+// 9. GET & POST /api/config - Manage Storage configuration
 app.get('/api/config', (_req, res) => {
   const config = getR2ConfigFromEnv();
   res.json({
@@ -250,10 +250,39 @@ app.get('/api/config', (_req, res) => {
 
 app.post('/api/config', (req, res) => {
   try {
-    const { accountId, accessKeyId, secretAccessKey, bucketName, publicUrlPrefix } = req.body;
+    const {
+      storageType,
+      accountId,
+      minioEndpoint,
+      minioRegion,
+      minioUsePathStyle,
+      accessKeyId,
+      secretAccessKey,
+      bucketName,
+      publicUrlPrefix
+    } = req.body;
+
+    // Read existing .env if it exists to preserve other configs
+    let existingEnv: Record<string, string> = {};
+    if (fs.existsSync(ENV_FILE_PATH)) {
+      const content = fs.readFileSync(ENV_FILE_PATH, 'utf8');
+      content.split('\n').forEach(line => {
+        const parts = line.split('=');
+        if (parts.length >= 2) {
+          const key = parts[0].trim();
+          const val = parts.slice(1).join('=').trim();
+          if (key) existingEnv[key] = val;
+        }
+      });
+    }
 
     const updates: Record<string, string> = {
+      ...existingEnv,
+      STORAGE_TYPE: storageType || 'r2',
       R2_ACCOUNT_ID: accountId || '',
+      MINIO_ENDPOINT: minioEndpoint || '',
+      MINIO_REGION: minioRegion || 'us-east-1',
+      MINIO_USE_PATH_STYLE: minioUsePathStyle === false ? 'false' : 'true',
       R2_ACCESS_KEY_ID: accessKeyId || '',
       R2_BUCKET_NAME: bucketName || 'nicogallery',
       R2_PUBLIC_URL_PREFIX: publicUrlPrefix || '',
@@ -261,6 +290,8 @@ app.post('/api/config', (req, res) => {
 
     if (secretAccessKey && secretAccessKey !== '••••••••') {
       updates.R2_SECRET_ACCESS_KEY = secretAccessKey;
+    } else if (existingEnv.R2_SECRET_ACCESS_KEY) {
+      updates.R2_SECRET_ACCESS_KEY = existingEnv.R2_SECRET_ACCESS_KEY;
     }
 
     // Write to process.env and .env file
