@@ -19,7 +19,22 @@ type Config struct {
 	PublicURLPrefix string
 }
 
-func UploadToR2(ctx context.Context, buffer []byte, filename string, cfg Config) (string, error) {
+// R2Storage implements the Storage interface for Cloudflare R2.
+type R2Storage struct {
+	cfg Config
+}
+
+// NewR2Storage creates a new instance of R2Storage.
+func NewR2Storage(cfg Config) *R2Storage {
+	if cfg.BucketName == "" {
+		cfg.BucketName = "nicogallery"
+	}
+	return &R2Storage{cfg: cfg}
+}
+
+// Upload uploads the buffer to Cloudflare R2 and returns the public URL.
+func (s *R2Storage) Upload(ctx context.Context, buffer []byte, filename string) (string, error) {
+	cfg := s.cfg
 	if cfg.AccountID == "" || cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" || cfg.BucketName == "" {
 		return "", fmt.Errorf("Cloudflare R2 credentials (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME) are missing. Please provide them via flags or environment variables")
 	}

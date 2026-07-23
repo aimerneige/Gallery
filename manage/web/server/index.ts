@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { exec } from 'child_process';
 import { parseExif } from './exif.js';
 import { processImage } from './image.js';
-import { uploadToR2, getR2ConfigFromEnv } from './storage.js';
+import { getStorageProvider, getR2ConfigFromEnv } from './storage.js';
 import {
   getAllGalleryData,
   saveOrUpdatePhoto,
@@ -122,10 +122,10 @@ app.post('/api/upload', upload.single('photo'), async (req, res) => {
     // Process image to WebP
     const processed = await processImage(req.file.buffer, { maxDimension: Number(maxDimension), quality: Number(quality) });
 
-    // Upload strictly to Cloudflare R2
-    const config = getR2ConfigFromEnv();
+    // Upload to storage provider
+    const storageProvider = getStorageProvider();
     const filename = `${id}.webp`;
-    const r2Url = await uploadToR2(processed.buffer, filename, config);
+    const r2Url = await storageProvider.upload(processed.buffer, filename);
 
     const newPhoto = {
       id,

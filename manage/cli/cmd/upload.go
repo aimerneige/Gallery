@@ -127,12 +127,13 @@ var uploadCmd = &cobra.Command{
 			targetDbPath = database.GetDefaultDbPath()
 		}
 
-		fmt.Println("==> Uploading image asset to Cloudflare R2...")
-		r2Url, err := storage.UploadToR2(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID), r2Cfg)
+		fmt.Println("==> Uploading image asset to storage...")
+		var store storage.Storage = storage.NewR2Storage(r2Cfg)
+		r2Url, err := store.Upload(context.Background(), procResult.Buffer, fmt.Sprintf("%s.webp", photoID))
 		if err != nil {
 			return fmt.Errorf("storage upload error: %w", err)
 		}
-		fmt.Printf("✔ Image R2 URL: %s\n", r2Url)
+		fmt.Printf("✔ Image URL: %s\n", r2Url)
 
 		// 4. Update Database
 		if dryRunFlag {

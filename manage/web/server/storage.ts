@@ -18,47 +18,62 @@ export function getR2ConfigFromEnv(): R2Config {
   };
 }
 
-export async function uploadToR2(
-  buffer: Buffer,
-  filename: string,
-  config: R2Config
-): Promise<string> {
-  const { accountId, accessKeyId, secretAccessKey, bucketName, publicUrlPrefix } = config;
+// StorageProvider represents the abstract interface for uploading gallery image files.
+export interface StorageProvider {
+  upload(buffer: Buffer, filename: string): Promise<string>;
+}
 
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
-    throw new Error(
-      'Cloudflare R2 credentials (ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME) are missing. Please configure them in Settings before uploading.'
-    );
+// R2StorageProvider implements StorageProvider interface for Cloudflare R2.
+export class R2StorageProvider implements StorageProvider {
+  private config: R2Config;
+
+  constructor(config: R2Config) {
+    this.config = config;
   }
 
-  try {
-    const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-    const s3 = new S3Client({
-      region: 'auto',
-      endpoint,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
+  async upload(buffer: Buffer, filename: string): Promise<string> {
+    const { accountId, accessKeyId, secretAccessKey, bucketName, publicUrlPrefix } = this.config;
 
-    const key = `photos/${filename}`;
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: buffer,
-        ContentType: 'image/webp',
-      })
-    );
-
-    if (publicUrlPrefix) {
-      const cleanPrefix = publicUrlPrefix.endsWith('/') ? publicUrlPrefix.slice(0, -1) : publicUrlPrefix;
-      return `${cleanPrefix}/${key}`;
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+      throw new Error(
+        'Cloudflare R2 credentials (ACCOUNT_ID, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME) are missing. Please configure them in Settings before uploading.'
+      );
     }
 
-    return `${endpoint}/${bucketName}/${key}`;
-  } catch (err: any) {
-    throw new Error(`Cloudflare R2 upload failed: ${err.message}`);
+    try {
+      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+
+      const key = `photos/${filename}`;
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: key,
+          Body: buffer,
+          ContentType: 'image/webp',
+        })
+      );
+
+      if (publicUrlPrefix) {
+        const cleanPrefix = publicUrlPrefix.endsWith('/') ? publicUrlPrefix.slice(0, -1) : publicUrlPrefix;
+        return `${cleanPrefix}/${key}`;
+      }
+
+      return `${endpoint}/${bucketName}/${key}`;
+    } catch (err: any) {
+      throw new Error(`Cloudflare R2 upload failed: ${err.message}`);
+    }
   }
+}
+
+// getStorageProvider instantiates and returns the default StorageProvider (R2).
+export function getStorageProvider(): StorageProvider {
+  return new R2StorageProvider(getR2ConfigFromEnv());
 }
